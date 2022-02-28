@@ -14,12 +14,11 @@ from nltk.corpus import stopwords
 from string import punctuation
 from autocorrect import Speller as spell
 from nltk import word_tokenize, pos_tag
-from lxml import etree  
+from lxml import etree
 
 
 
 '''
-
 https://www.straitstimes.com/singapore/jobs?page=1
 https://www.straitstimes.com/singapore/housing?page=1
 https://www.straitstimes.com/singapore/parenting-education?page=1
@@ -155,35 +154,49 @@ class InfoGetter:
     async def get_link_by_cat(self):
         cat_list = ['jobs', 'housing', 'parenting-education', 'politics', 'health', 'transport', 'courts-crime',
                     'consumer', 'environment', 'community']
+        asia_country_list = ['se-asia', 'east-asia', 'south-asia', 'australianz']
+        word_country_list = ['united-states','europe','middle-east']
         for i in range(0,self.page):
             try:
-                for item in cat_list:
-                    req = requests.get('https://www.straitstimes.com/singapore/'+item+'?page='+str(i),headers=self.headers)
-                    req.raise_for_status()
-                    page_soup = soup(req.text, 'html.parser')
-                    reqs = page_soup.findAll("a", {"class": "stretched-link"})
+                for item_a in cat_list:
+                    req_a = requests.get('https://www.straitstimes.com/singapore/'+item_a+'?page='+str(i),headers=self.headers)
+                    req_a.raise_for_status()
+                    page_soup = soup(req_a.text, 'html.parser')
+                    reqs_a = page_soup.findAll("a", {"class": "stretched-link"})
 
-                    for re in reqs:
+                    for re_a in reqs_a:
+                        self.links.append("https://www.straitstimes.com" + re_a["href"])
+
+                for item_b in asia_country_list:
+                    req_b = requests.get('https://www.straitstimes.com/asia/'+item_b+'?page='+str(i),headers=self.headers)
+                    req_b.raise_for_status()
+                    page_soup = soup(req_b.text, 'html.parser')
+                    reqs_b = page_soup.findAll("a", {"class": "stretched-link"})
+
+                    for re_b in reqs_b:
+                        self.links.append("https://www.straitstimes.com" + re_b["href"])
+
+                for item_c in word_country_list:
+                    req_c = requests.get('https://www.straitstimes.com/world/'+item_c+'?page='+str(i),headers=self.headers)
+                    req_c.raise_for_status()
+                    page_soup = soup(req_c.text, 'html.parser')
+                    reqs_c = page_soup.findAll("a", {"class": "stretched-link"})
+
+                    for re in reqs_c:
                         self.links.append("https://www.straitstimes.com" + re["href"])
+
             except requests.HTTPError as err:
-                print(str(err) + 'https://www.straitstimes.com/singapore/'+item+'?page='+str(i))
+                print('[!!] Something went wrong!' + err)
 
     async def parse_data(self):
         clean = Preprocessor()
         for id, link in enumerate(self.links):
             html_text = await self.get_href_link(link)
-            # html = etree.HTML(html_text)
             if html_text:
                 page_soup = soup(html_text, 'html.parser')
                 try:
 
                     base_info = str(page_soup.find_all('script')[6].contents[0]).split('\n')
-
-                    location = base_info[4]
-                    location = location[location.find(':') + 2:-1][1:-1]
-
-                    category = base_info[5]
-                    category = category[category.find(':') + 2:-1][1:-1]
 
                     title = base_info[22]
                     title = title[title.find(':') + 2:-1].replace("_", " ")[1:-1]
@@ -198,6 +211,18 @@ class InfoGetter:
                     image_link = image_link["src"]
 
                     content=soup(str(page_soup.findAll('p')), "lxml").text[1:-1]
+
+                    pos_list = [4]
+                    for i in pos_list:
+                        location = base_info[i]
+                        location = location[location.find(':') + 2:-1]
+                        if (str(location) == '"Singapore"'):
+                            category = base_info[5]
+                            category = category[category.find(':') + 2:-1]
+                        else:
+                            location = base_info[i + 1]
+                            location = location[location.find(':') + 2:-1]
+                            category = ""
 
                     dic_data = {
                             "category": clean.preprocess(str(category)),
@@ -224,5 +249,6 @@ class InfoGetter:
            f.write(json.dumps(self.data,indent=4) )
 
 if __name__ == '__main__':
-        getter = InfoGetter(10)
+        getter = InfoGetter(2)
         getter.generate_json()
+        ## test
