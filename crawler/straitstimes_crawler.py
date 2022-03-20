@@ -16,20 +16,6 @@ from autocorrect import Speller as spell
 from nltk import word_tokenize, pos_tag
 from lxml import etree
 
-
-
-'''
-https://www.straitstimes.com/singapore/jobs?page=1
-https://www.straitstimes.com/singapore/housing?page=1
-https://www.straitstimes.com/singapore/parenting-education?page=1
-https://www.straitstimes.com/singapore/politics?page=1
-https://www.straitstimes.com/singapore/health?page=1
-https://www.straitstimes.com/singapore/transport?page=1
-https://www.straitstimes.com/singapore/courts-crime?page=1
-https://www.straitstimes.com/singapore/consumer?page=1
-https://www.straitstimes.com/singapore/environment?page=1
-https://www.straitstimes.com/singapore/community?page=1
-'''
 class Preprocessor:
     def __int__(self):
 
@@ -152,77 +138,130 @@ class InfoGetter:
                 print(e.args)
 
     async def get_link_by_cat(self):
-        cat_list = ['jobs', 'housing', 'parenting-education', 'politics', 'health', 'transport', 'courts-crime',
+        singapore_list = ['jobs', 'housing', 'parenting-education', 'politics', 'health', 'transport', 'courts-crime',
                     'consumer', 'environment', 'community']
         asia_country_list = ['se-asia', 'east-asia', 'south-asia', 'australianz']
-        word_country_list = ['united-states','europe','middle-east']
-        for i in range(0,self.page):
-            try:
-                for item_a in cat_list:
-                    req_a = requests.get('https://www.straitstimes.com/singapore/'+item_a+'?page='+str(i),headers=self.headers)
-                    req_a.raise_for_status()
-                    page_soup = soup(req_a.text, 'html.parser')
-                    reqs_a = page_soup.findAll("a", {"class": "stretched-link"})
+        world_country_list = ['united-states','europe','middle-east']
+        life_cat_list = ['food', 'entertainment', 'style', 'travel', 'arts', 'motoring', 'home-design']
+        business_cat_list=['economy', 'invest', 'banking', 'companies-markets','property']
+        tech_cat_list = ['tech-news', 'e-sports', 'reviews']
+        sport_cat_list = ['football', 'schools', 'formula-one','combat-sports','basketball','tennis','golf']
 
-                    for re_a in reqs_a:
-                        self.links.append("https://www.straitstimes.com" + re_a["href"])
+        web_dic = {}
+        web_dic['singapore'] = singapore_list
+        web_dic['asia'] = asia_country_list
+        web_dic['world'] = world_country_list
+        web_dic['life'] = life_cat_list
+        web_dic['business'] = business_cat_list
+        web_dic['tech'] = tech_cat_list
+        web_dic['sport'] = sport_cat_list
+        web_dic['opinion']=''
+        web_dic['st-podcasts'] = ''
+        web_dic['multimedia'] = ''
 
-                for item_b in asia_country_list:
-                    req_b = requests.get('https://www.straitstimes.com/asia/'+item_b+'?page='+str(i),headers=self.headers)
-                    req_b.raise_for_status()
-                    page_soup = soup(req_b.text, 'html.parser')
-                    reqs_b = page_soup.findAll("a", {"class": "stretched-link"})
+        for web_link in web_dic.keys():
+            for i in range(0,self.page):
+                try:
+                    web_baisc_link = 'https://www.straitstimes.com/' + web_link
+                    html_text = await self.get_href_link(web_baisc_link)
+                    html = etree.HTML(html_text)
+                    href = html.xpath("//div[@class='view-footer']/a/@href")
+                    for item in href:
+                        try:
+                            if (item.startswith('https')):
+                                baselink = item
+                                req = requests.get(baselink, headers=self.headers)
+                                req.raise_for_status()
+                                page_soup = soup(req.text, 'html.parser')
+                                reqs = page_soup.findAll("a", {"class": "stretched-link"})
+                                #print(reqs)
+                                for re in reqs:
+                                    self.links.append("https://www.straitstimes.com" + re["href"])
+                                    #print(self.links)
+                            else:
+                                baselink = 'https://www.straitstimes.com' + item + '?page=' + str(i)
+                                req = requests.get(baselink, headers=self.headers)
+                                req.raise_for_status()
+                                page_soup = soup(req.text, 'html.parser')
+                                reqs = page_soup.findAll("a", {"class": "stretched-link"})
+                                for re in reqs:
+                                    self.links.append("https://www.straitstimes.com" + re["href"])
+                        except:
+                            pass
 
-                    for re_b in reqs_b:
-                        self.links.append("https://www.straitstimes.com" + re_b["href"])
-
-                for item_c in word_country_list:
-                    req_c = requests.get('https://www.straitstimes.com/world/'+item_c+'?page='+str(i),headers=self.headers)
-                    req_c.raise_for_status()
-                    page_soup = soup(req_c.text, 'html.parser')
-                    reqs_c = page_soup.findAll("a", {"class": "stretched-link"})
-
-                    for re in reqs_c:
-                        self.links.append("https://www.straitstimes.com" + re["href"])
-
-            except requests.HTTPError as err:
-                print('[!!] Something went wrong!' + err)
+                    for item in web_dic[web_link]:
+                        if item == 'food' or item == 'travel':
+                            link = 'https://www.straitstimes.com/' + web_link + '/' + item
+                            html_text = await self.get_href_link(link)
+                            html = etree.HTML(html_text)
+                            href = html.xpath("//div[@class='view-footer']/a/@href")
+                            for item in href:
+                                try:
+                                    baselink = 'https://www.straitstimes.com' + item +'?page=' + str(i)
+                                    req = requests.get(baselink,headers=self.headers)
+                                    req.raise_for_status()
+                                    page_soup = soup(req.text, 'html.parser')
+                                    reqs = page_soup.findAll("a", {"class": "stretched-link"})
+                                    for re in reqs:
+                                        self.links.append("https://www.straitstimes.com" + re["href"])
+                                except:
+                                    pass
+                        else:
+                            req = requests.get('https://www.straitstimes.com/' + web_link + '/' +item+'?page='+str(i),headers=self.headers)
+                            # print('https://www.straitstimes.com/' + web_link + '/' +item+'?page='+str(i))
+                            req.raise_for_status()
+                            page_soup = soup(req.text, 'html.parser')
+                            # print('success for', 'https://www.straitstimes.com/' + web_link + '/' +item+'?page='+str(i))
+                            reqs = page_soup.findAll("a", {"class": "stretched-link"})
+                            for re in reqs:
+                                self.links.append("https://www.straitstimes.com" + re["href"])
+                except requests.HTTPError as err:
+                    print('[!!] Something went wrong!' + err)
+                    #pass
 
     async def parse_data(self):
         clean = Preprocessor()
+        '''
+        with open('mylink_file.txt') as file:
+            lines = [line.rstrip() for line in file]
+        self.links = lines
+        '''
         for id, link in enumerate(self.links):
             html_text = await self.get_href_link(link)
             if html_text:
                 page_soup = soup(html_text, 'html.parser')
                 try:
-
                     base_info = str(page_soup.find_all('script')[6].contents[0]).split('\n')
+                   # print("base_info  ",page_soup.find_all('script')[6].contents[0])
 
                     title = base_info[22]
-                    title = title[title.find(':') + 2:-1].replace("_", " ")[1:-1]
+                    title = title[title.find(':') + 2:-1].replace("_", " ")[1:-1].strip('"')
 
                     author = base_info[9]
-                    author = author[author.find(':') + 2:-1][1:-1]
+                    author = author[author.find(':') + 2:-1][1:-1].strip('"')
 
                     create_time = base_info[20]
-                    create_time = create_time[create_time.find(':') + 2:-1][1:-1]
+                    create_time = create_time[create_time.find(':') + 2:-1][1:-1].strip('"')
 
                     image_link = page_soup.find("img", {"class": "image-style-large30x20"})
                     image_link = image_link["src"]
 
                     content=soup(str(page_soup.findAll('p')), "lxml").text[1:-1]
 
-                    pos_list = [4]
-                    for i in pos_list:
-                        location = base_info[i]
-                        location = location[location.find(':') + 2:-1]
-                        if (str(location) == '"Singapore"'):
-                            category = base_info[5]
-                            category = category[category.find(':') + 2:-1]
-                        else:
-                            location = base_info[i + 1]
+                    category_A = base_info[4]
+                    category_A = category_A[category_A.find(':') + 2:-1].strip('"')
+                    category_B = base_info[5]
+                    category_B = category_B[category_B.find(':') + 2:-1].strip('"')
+                    category = category_A + ' ' + category_B
+
+                    if (str(category_A) == 'Singapore'):
+                            location = base_info[4]
                             location = location[location.find(':') + 2:-1]
-                            category = ""
+                    elif(str(category_A) == 'Asia' or str(category_A) == 'World'):
+                            location = base_info[5]
+                            location = location[location.find(':') + 2:-1]
+                    else:
+                        location=''
 
                     dic_data = {
                             "category": clean.preprocess(str(category)),
@@ -235,8 +274,9 @@ class InfoGetter:
                     }
                     self.data.append(dic_data)
                 except:
-                    print("An exception occurred")
-                    print(content)
+                    pass
+                    #print("An exception occurred")
+                    #print(content)
 
     def start(self):
         loop = asyncio.get_event_loop()
@@ -245,10 +285,10 @@ class InfoGetter:
 
     def generate_json(self):
         self.start()
-        with open(os.path.join('total_'+str(self.page) + '_pages.json'), "w") as f:
+        with open(os.path.join('total_'+str(self.page) + '_page(s).json'), "w") as f:
            f.write(json.dumps(self.data,indent=4) )
 
 if __name__ == '__main__':
-        getter = InfoGetter(2)
+        getter = InfoGetter(1)
         getter.generate_json()
-        ## test
+
