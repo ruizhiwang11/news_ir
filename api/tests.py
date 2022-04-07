@@ -1,9 +1,33 @@
 from time import strptime
+from unicodedata import category
 from django.test import TestCase
 
 from .documents import NewsDocument
 from .models import News
 from datetime import datetime
+
+import json
+
+with open("/home/ruizhi.wang/news_ir/api/clean.json", "r") as f:
+    data = f.read()
+
+data = json.loads(data)
+
+for element in data:
+
+    tmp_news = News(
+        category = element["category"],
+        location = element["location"],
+        title = element["title"],
+        author = element["author"],
+        created_time = datetime.strptime(element["create_time"], "%Y-%m-%d %H:%M:%S"),
+        content = element["content"],
+        image = element["image"]
+    )
+    try:
+        tmp_news.save()
+    except Exception as e:
+        print(str(e))
 
 
 # news = News(
@@ -17,10 +41,49 @@ from datetime import datetime
 
 # news.save()
 
-s = NewsDocument.search().query("match", content="great demand")
 
-for hit in s:
-    print(
-        "News title : {}, content {}".format(hit.title, hit.content)
-    )
+
+# s = NewsDocument.search().query("match", content="great demand")
+
+
+
+# for hit in s:
+#     print(
+#         "News title : {}, content {}".format(hit.title, hit.content)
+#     )
+
+# s = NewsDocument.search().count()
+# print(s)
 # Create your tests here.
+from elasticsearch_dsl import Q
+from .documents import NewsDocument
+
+# Looks up all the articles that contain `How to` in the title.
+query = 'How to'
+q = Q(
+     'multi_match',
+     query=query,
+     fields=[
+         'title'
+     ])
+search = NewsDocument.search().query(q)
+response = search.execute()
+
+# print all the hits
+for hit in search:
+    print(hit.title)
+
+query = 'singapowe'  # notice the typo
+q = Q(
+     'multi_match',
+     query=query,
+     fields=[
+         'title'
+     ],
+     fuzziness='auto')
+search = NewsDocument.search().query(q)
+response = search.execute()
+
+# print all the hits
+for hit in search:
+    print(hit.title)
