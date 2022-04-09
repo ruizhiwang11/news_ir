@@ -2,6 +2,7 @@ from django.shortcuts import render
 from numpy import size
 from rest_framework import generics, status
 from api.documents import NewsDocument
+from rest_framework.response import Response
 from api.models import News
 
 from api.serializers import NewsSerializer
@@ -52,9 +53,12 @@ class SearchNews(PaginatedElasticSearchAPIView):
                 fields=[
                     'title',
                     "content"
+                    "created_time",
+                    "location",
+                    "author"
                 ], fuzziness='auto')
 
-class SortedLatest(APIView, LimitOffsetPagination):
+class SortedLatest(APIView):
     serializer_class = NewsSerializer
     document_class = NewsDocument
     
@@ -64,10 +68,10 @@ class SortedLatest(APIView, LimitOffsetPagination):
             # response = search.execute()
 
             #print(f'Found {response.hits.total.value} hit(s) for query')
-            ordererd = News.objects.order_by('created_time')[:30]
+            ordererd = News.objects.all().order_by("-created_time")[0:70]
             
             #results = self.paginate_queryset(response, request, view=self)
             serializer = self.serializer_class(ordererd, many=True)
-            return self.get_paginated_response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return HttpResponse(e, status=500) 
