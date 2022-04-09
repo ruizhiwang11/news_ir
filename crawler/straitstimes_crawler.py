@@ -289,6 +289,6 @@ class InfoGetter:
            f.write(json.dumps(self.data,indent=4) )
 
 if __name__ == '__main__':
-        getter = InfoGetter(1)
+        getter = InfoGetter(10)
         getter.generate_json()
 

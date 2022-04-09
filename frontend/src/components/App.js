@@ -1,19 +1,17 @@
 import React, { Component } from "react";
 import { render } from "react-dom";
+import SearchPage from "./SearchPage";
 
-export default class App extends Component {
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    return (
-      <p className='center'>
-        You can write your frontend code here
-      </p>
-    );
-  }
+function App() {
+  return (
+    <div className="App">
+      <SearchPage />
+    </div>
+  );
 }
 
+
+
+export default App;
 const appDiv = document.getElementById("app");
 render(<App />, appDiv);

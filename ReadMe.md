@@ -21,3 +21,9 @@ pip install -r requirments.txt
 [django elasticsearch ](https://django-elasticsearch-dsl.readthedocs.io/en/latest/)
 
 5. to begin with frontend, refer to the readme in fronend subdirectory
+
+## To run this project, please run the following command
+
+1. Start the server ```./manage.py runserver```
+2. Start the frontend ```cd frontend && npm run dev```
+3. Open the browser ```http://127.0.0.1:8000/``` 
