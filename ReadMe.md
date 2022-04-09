@@ -27,3 +27,8 @@ pip install -r requirments.txt
 1. Start the server ```./manage.py runserver```
 2. Start the frontend ```cd frontend && npm run dev```
 3. Open the browser ```http://127.0.0.1:8000/``` 
+
+## To run the classfication
+
+1. run ```git-lfs fetch``` and ```git-lfs checkout``` to download the ml model from repo
+2. Follow the step on the jupyter notebook to run the ml model
