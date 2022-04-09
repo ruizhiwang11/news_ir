@@ -55,7 +55,7 @@ const updateUserInput = async (userInput) => {
   const BtnStyling = {padding:"0.5rem"}
   return (
     <>
-      <h1>NewsList</h1>
+      <h1>OneNews</h1>
 
     <div >
     <input 

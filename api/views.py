@@ -17,6 +17,7 @@ from elasticsearch_dsl import Q
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.views import APIView
 import operator
+import time
 
 
 class PaginatedElasticSearchAPIView(APIView, LimitOffsetPagination):
@@ -33,7 +34,10 @@ class PaginatedElasticSearchAPIView(APIView, LimitOffsetPagination):
         try:
             q = self.generate_q_expression(query)
             search = self.document_class.search().query(q)
+            start_time = time.time()
             response = search.execute()
+            stop_time = time.time()
+            print(f"Execute time is {stop_time - start_time}")
 
             print(f'Found {response.hits.total.value} hit(s) for query: "{query}"')
 
