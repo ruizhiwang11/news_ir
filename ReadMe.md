@@ -31,4 +31,5 @@ pip install -r requirments.txt
 ## To run the classfication
 
 1. run ```git-lfs fetch``` and ```git-lfs checkout``` to download the ml model from repo
-2. Follow the step on the jupyter notebook to run the ml model
+2. run ```git submodule init``` and ```git submodule update```
+3. Follow the step on the jupyter notebook to run the ml model
