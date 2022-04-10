@@ -8,7 +8,7 @@ from datetime import datetime
 
 import json
 
-with open("/home/ruizhi.wang/news_ir/api/clean.json", "r") as f:
+with open("/home/ruizhi/news_ir/api/clean.json", "r") as f:
     data = f.read()
 
 data = json.loads(data)

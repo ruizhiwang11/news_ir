@@ -8,3 +8,4 @@ django-elasticsearch-dsl==7.2.2
 djangorestframework==3.13.1
 nltk==3.6.7
 lxml==4.7.1
+django_elasticsearch_dsl_drf

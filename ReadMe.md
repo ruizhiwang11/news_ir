@@ -22,6 +22,10 @@ pip install -r requirments.txt
 
 5. to begin with frontend, refer to the readme in fronend subdirectory
 
+## To indexing the data, please run
+
+```./manage.py test```
+
 ## To run this project, please run the following command
 
 1. Start the server ```./manage.py runserver```
